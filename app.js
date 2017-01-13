@@ -17,7 +17,9 @@ const
   express = require('express'),
   https = require('https'),
   request = require('request'),
-  conversationv1 = require('watson-developer-cloud/conversation/v1');
+  conversationv1 = require('watson-developer-cloud/conversation/v1'),
+  Promise = require('bluebird'),
+  colors = require('colors');
 
 var app = express();
 app.set('port', process.env.PORT || 5000);
@@ -72,7 +74,26 @@ const conversation = new conversationv1({
 });
 
 // Used to store the conversation context
-let currentContext;
+// let currentContext = [];
+let currentContext = {};
+
+const savingsActions = {
+  insurance: 'mobile_insurance',
+  interest: 'interest',
+  cashback: 'cashback'
+};
+
+// Find a context by User ID
+function findContextByUserID(userID) {
+  for(let i = 0; i < currentContext.length; i++) {
+    let context = currentContext[i];
+    if(context.userID === userID) {
+      return context;
+    } else {
+      return undefined;
+    }
+  }
+}
 
 /*
  * Use your own validation token. Check that the token used in the Webhook
@@ -334,11 +355,15 @@ function receivedMessage(event) {
   }
 }
 
+let contextStack = {}
+
 function sendToWatson(senderID, userMessage) {
+  // sendTypingOn(senderID);
+
   // Start conversation with empty message.
   conversation.message({
     input: { text: userMessage },
-    context: currentContext
+    context: contextStack[senderID]
   }, processResponse);
 
   // Process the conversation response.
@@ -351,9 +376,11 @@ function sendToWatson(senderID, userMessage) {
 
     // If an intent was detected, log it out to the console.
     if (response.intents.length > 0) {
-      console.log('Detected intent: #' + response.intents[0].intent);
-      sendTextMessage(senderID, 'Detected intent: #' + response.intents[0].intent);
-      sendTextMessage(senderID, 'Current context: ' + JSON.stringify(currentContext));
+      console.log(colors.green('Detected intent: #' + response.intents[0].intent));
+    }
+    // If there is a current context, log it out to the console.
+    if ( contextStack[senderID] ) {
+      console.log(colors.red('Current context ' + JSON.stringify(contextStack[senderID])));
     }
 
     // Display the output from dialog, if any.
@@ -362,21 +389,127 @@ function sendToWatson(senderID, userMessage) {
         sendTextMessage(senderID, response.output.text[0]);
     }
 
+    // If we detect an action in the response, act on it
+    if (response.output.action) {
+      console.log(colors.yellow('Detected action: #' + response.output.action));
+
+      let params = '';
+      let isSavingsAction = false;
+      let endConversation = false;
+      switch (response.output.action) {
+        case savingsActions.insurance:
+          params = '?filter[where][mobile_insurance]=true';
+          isSavingsAction = true;
+          break;
+        case savingsActions.interest:
+          params = '?filter[where][interest][gt]=2&filter[limit]=1';
+          isSavingsAction = true;
+          break;
+        case savingsActions.cashback:
+          params = '?filter[where][cashback]=true';
+          isSavingsAction = true;
+          break;
+        case 'check_balance':
+          sendTextMessage(senderID, 'Your current account balance is £1756.78');
+          break;
+        case 'end_conversation':
+          endConversation = true;
+          break;
+        default:
+          // Do nothing
+          break;
+      }
+      if (isSavingsAction) {
+        let account = getBankingOffers(params).then(function(result) {
+          sendGenericMessage(senderID, result[0]);
+        });
+      }
+      // if we got an action to end the conversation
+      if (endConversation) {
+        // delete the context for this conversation
+        delete contextStack[senderID];
+      }
+    }
+
     // Add the facebook sender ID to the context
     // so this bot can be 'multi-tenant'
-    response.context.userID = senderID;
+    // response.context.userID = senderID;
     // Store the context from the response so we can send it
     // with the next message
-    currentContext = response.context;
+    // currentContext.push(response.context);
+    // currentContext = response.context;
 
-    // Send back the context to maintain state.
-    // conversation.message({
-    //   input: { text: userMessage },
-    //   context : response.context,
-    // }, processResponse)
+    contextStack[senderID] = response.context;
+
   }
 }
 
+
+function sendTemplateMessage(recipientId, account) {
+
+  var template = {
+    recipient: {
+      id: recipientId
+    },
+    message: {
+      attachment: {
+        type: 'template',
+        payload: {
+          template_type: 'generic',
+          elements: [
+            {
+              title: account.name,
+              image_url: "http://themarketcentre.co.uk/cache/thumbs/h/a/l/3f0f537b_380x380.jpg",
+              subtitle: account.description,
+              default_action: {
+                type: "web_url",
+                url: "https://wwww.halifax.co.uk",
+                messenger_extensions: false,
+                webview_height_ratio: "tall",
+                fallback_url: "https://wwww.halifax.co.uk"
+              },
+              buttons: [
+                {
+                  type: "web_url",
+                  url: "http://wwww.halifax.co.uk",
+                  title: "Go to " + account.brand + "'s website"
+                },
+                {
+                  type: "postback",
+                  title: "Another button",
+                  payload: "Button button button",
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+
+  callSendAPI(template);
+}
+
+function getBankingOffers(params) {
+  const https = require('https');
+  const host = 'api.eu.apiconnect.ibmcloud.com';
+  const path = '/matthewcroninukibmcom-mattcronin/development/api/products';
+  return new Promise(function( resolve, reject ) {
+    https.get({
+      host: host,
+      path: path + params,
+      headers: {
+        'X-IBM-Client-ID': '52747a95-9564-48a5-8f4d-4bdaa2fd948b',
+        'X-IBM-Client-Secret': 'hM3iG8iL5nG5cE3qI0pC1nG8fB0iJ8oS5bX2xJ4iU8pB8xX1gN'
+      }
+    }, (res) => {
+      console.log(res.statusCode);
+      res.on("data", function(chunk) {
+        resolve(JSON.parse(chunk.toString()));
+      });
+    })
+  })
+}
 
 /*
  * Delivery Confirmation Event
@@ -466,115 +599,6 @@ function receivedAccountLink(event) {
     "and auth code %s ", senderID, status, authCode);
 }
 
-/*
- * Send an image using the Send API.
- *
- */
-function sendImageMessage(recipientId) {
-  var messageData = {
-    recipient: {
-      id: recipientId
-    },
-    message: {
-      attachment: {
-        type: "image",
-        payload: {
-          url: SERVER_URL + "/assets/rift.png"
-        }
-      }
-    }
-  };
-
-  callSendAPI(messageData);
-}
-
-/*
- * Send a Gif using the Send API.
- *
- */
-function sendGifMessage(recipientId) {
-  var messageData = {
-    recipient: {
-      id: recipientId
-    },
-    message: {
-      attachment: {
-        type: "image",
-        payload: {
-          url: SERVER_URL + "/assets/instagram_logo.gif"
-        }
-      }
-    }
-  };
-
-  callSendAPI(messageData);
-}
-
-/*
- * Send audio using the Send API.
- *
- */
-function sendAudioMessage(recipientId) {
-  var messageData = {
-    recipient: {
-      id: recipientId
-    },
-    message: {
-      attachment: {
-        type: "audio",
-        payload: {
-          url: SERVER_URL + "/assets/sample.mp3"
-        }
-      }
-    }
-  };
-
-  callSendAPI(messageData);
-}
-
-/*
- * Send a video using the Send API.
- *
- */
-function sendVideoMessage(recipientId) {
-  var messageData = {
-    recipient: {
-      id: recipientId
-    },
-    message: {
-      attachment: {
-        type: "video",
-        payload: {
-          url: SERVER_URL + "/assets/allofus480.mov"
-        }
-      }
-    }
-  };
-
-  callSendAPI(messageData);
-}
-
-/*
- * Send a file using the Send API.
- *
- */
-function sendFileMessage(recipientId) {
-  var messageData = {
-    recipient: {
-      id: recipientId
-    },
-    message: {
-      attachment: {
-        type: "file",
-        payload: {
-          url: SERVER_URL + "/assets/test.txt"
-        }
-      }
-    }
-  };
-
-  callSendAPI(messageData);
-}
 
 /*
  * Send a text message using the Send API.
@@ -595,46 +619,10 @@ function sendTextMessage(recipientId, messageText) {
 }
 
 /*
- * Send a button message using the Send API.
- *
- */
-function sendButtonMessage(recipientId) {
-  var messageData = {
-    recipient: {
-      id: recipientId
-    },
-    message: {
-      attachment: {
-        type: "template",
-        payload: {
-          template_type: "button",
-          text: "This is test text",
-          buttons:[{
-            type: "web_url",
-            url: "https://www.oculus.com/en-us/rift/",
-            title: "Open Web URL"
-          }, {
-            type: "postback",
-            title: "Trigger Postback",
-            payload: "DEVELOPER_DEFINED_PAYLOAD"
-          }, {
-            type: "phone_number",
-            title: "Call Phone Number",
-            payload: "+16505551234"
-          }]
-        }
-      }
-    }
-  };
-
-  callSendAPI(messageData);
-}
-
-/*
  * Send a Structured Message (Generic Message type) using the Send API.
  *
  */
-function sendGenericMessage(recipientId) {
+function sendGenericMessage(recipientId, account) {
   var messageData = {
     recipient: {
       id: recipientId
@@ -645,211 +633,19 @@ function sendGenericMessage(recipientId) {
         payload: {
           template_type: "generic",
           elements: [{
-            title: "rift",
-            subtitle: "Next-generation virtual reality",
-            item_url: "https://www.oculus.com/en-us/rift/",
-            image_url: SERVER_URL + "/assets/rift.png",
+            title: account.name,
+            subtitle: account.description,
+            item_url: "https://halifax.co.uk",
+            image_url: "http://themarketcentre.co.uk/cache/thumbs/h/a/l/3f0f537b_380x380.jpg",
             buttons: [{
               type: "web_url",
-              url: "https://www.oculus.com/en-us/rift/",
-              title: "Open Web URL"
+              url: "https://halifax.co.uk",
+              title: "Open " + account.brand + "'s website"
             }, {
               type: "postback",
-              title: "Call Postback",
-              payload: "Payload for first bubble",
+              title: "Call " + account.brand,
+              payload: "Call " + account.brand,
             }],
-          }, {
-            title: "touch",
-            subtitle: "Your Hands, Now in VR",
-            item_url: "https://www.oculus.com/en-us/touch/",
-            image_url: SERVER_URL + "/assets/touch.png",
-            buttons: [{
-              type: "web_url",
-              url: "https://www.oculus.com/en-us/touch/",
-              title: "Open Web URL"
-            }, {
-              type: "postback",
-              title: "Call Postback",
-              payload: "Payload for second bubble",
-            }]
-          }]
-        }
-      }
-    }
-  };
-
-  callSendAPI(messageData);
-}
-
-/*
- * Send a receipt message using the Send API.
- *
- */
-function sendReceiptMessage(recipientId) {
-  // Generate a random receipt ID as the API requires a unique ID
-  var receiptId = "order" + Math.floor(Math.random()*1000);
-
-  var messageData = {
-    recipient: {
-      id: recipientId
-    },
-    message:{
-      attachment: {
-        type: "template",
-        payload: {
-          template_type: "receipt",
-          recipient_name: "Peter Chang",
-          order_number: receiptId,
-          currency: "USD",
-          payment_method: "Visa 1234",
-          timestamp: "1428444852",
-          elements: [{
-            title: "Oculus Rift",
-            subtitle: "Includes: headset, sensor, remote",
-            quantity: 1,
-            price: 599.00,
-            currency: "USD",
-            image_url: SERVER_URL + "/assets/riftsq.png"
-          }, {
-            title: "Samsung Gear VR",
-            subtitle: "Frost White",
-            quantity: 1,
-            price: 99.99,
-            currency: "USD",
-            image_url: SERVER_URL + "/assets/gearvrsq.png"
-          }],
-          address: {
-            street_1: "1 Hacker Way",
-            street_2: "",
-            city: "Menlo Park",
-            postal_code: "94025",
-            state: "CA",
-            country: "US"
-          },
-          summary: {
-            subtotal: 698.99,
-            shipping_cost: 20.00,
-            total_tax: 57.67,
-            total_cost: 626.66
-          },
-          adjustments: [{
-            name: "New Customer Discount",
-            amount: -50
-          }, {
-            name: "$100 Off Coupon",
-            amount: -100
-          }]
-        }
-      }
-    }
-  };
-
-  callSendAPI(messageData);
-}
-
-/*
- * Send a message with Quick Reply buttons.
- *
- */
-function sendQuickReply(recipientId) {
-  var messageData = {
-    recipient: {
-      id: recipientId
-    },
-    message: {
-      text: "What's your favorite movie genre?",
-      quick_replies: [
-        {
-          "content_type":"text",
-          "title":"Action",
-          "payload":"DEVELOPER_DEFINED_PAYLOAD_FOR_PICKING_ACTION"
-        },
-        {
-          "content_type":"text",
-          "title":"Comedy",
-          "payload":"DEVELOPER_DEFINED_PAYLOAD_FOR_PICKING_COMEDY"
-        },
-        {
-          "content_type":"text",
-          "title":"Drama",
-          "payload":"DEVELOPER_DEFINED_PAYLOAD_FOR_PICKING_DRAMA"
-        }
-      ]
-    }
-  };
-
-  callSendAPI(messageData);
-}
-
-/*
- * Send a read receipt to indicate the message has been read
- *
- */
-function sendReadReceipt(recipientId) {
-  console.log("Sending a read receipt to mark message as seen");
-
-  var messageData = {
-    recipient: {
-      id: recipientId
-    },
-    sender_action: "mark_seen"
-  };
-
-  callSendAPI(messageData);
-}
-
-/*
- * Turn typing indicator on
- *
- */
-function sendTypingOn(recipientId) {
-  console.log("Turning typing indicator on");
-
-  var messageData = {
-    recipient: {
-      id: recipientId
-    },
-    sender_action: "typing_on"
-  };
-
-  callSendAPI(messageData);
-}
-
-/*
- * Turn typing indicator off
- *
- */
-function sendTypingOff(recipientId) {
-  console.log("Turning typing indicator off");
-
-  var messageData = {
-    recipient: {
-      id: recipientId
-    },
-    sender_action: "typing_off"
-  };
-
-  callSendAPI(messageData);
-}
-
-/*
- * Send a message with the account linking call-to-action
- *
- */
-function sendAccountLinking(recipientId) {
-  var messageData = {
-    recipient: {
-      id: recipientId
-    },
-    message: {
-      attachment: {
-        type: "template",
-        payload: {
-          template_type: "button",
-          text: "Welcome. Link your account.",
-          buttons:[{
-            type: "account_link",
-            url: SERVER_URL + "/authorize"
           }]
         }
       }
