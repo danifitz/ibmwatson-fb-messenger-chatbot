@@ -6,5 +6,7 @@
     "conversationUrl": "",
     "conversationUsername": "",
     "conversationPassword": "",
-    "conversationWorkspace": ""
+    "conversationWorkspace": "",
+    "API_Key": "",
+    "API_Secret": ""
 }

@@ -58,6 +58,8 @@ const CONV_URL = config.get('conversationUrl');
 const CONV_USER = config.get('conversationUsername');
 const CONV_PASSWORD = config.get('conversationPassword');
 const CONV_WORKSPACE = config.get('conversationWorkspace');
+const API_KEY = config.get('API_Key');
+const API_SECRET = config.get('API_Secret');
 
 if (!(APP_SECRET && VALIDATION_TOKEN && PAGE_ACCESS_TOKEN && SERVER_URL
 && CONV_URL && CONV_USER && CONV_PASSWORD && CONV_WORKSPACE)) {
@@ -402,7 +404,7 @@ function sendToWatson(senderID, userMessage) {
           isSavingsAction = true;
           break;
         case savingsActions.interest:
-          params = '?filter[where][interest][gt]=2&filter[limit]=1';
+          params = '?filter[where][interest%20rate][gt]=2&filter[limit]=1';
           isSavingsAction = true;
           break;
         case savingsActions.cashback:
@@ -499,8 +501,8 @@ function getBankingOffers(params) {
       host: host,
       path: path + params,
       headers: {
-        'X-IBM-Client-ID': '52747a95-9564-48a5-8f4d-4bdaa2fd948b',
-        'X-IBM-Client-Secret': 'hM3iG8iL5nG5cE3qI0pC1nG8fB0iJ8oS5bX2xJ4iU8pB8xX1gN'
+        'X-IBM-Client-ID': API_KEY,
+        'X-IBM-Client-Secret': API_SECRET
       }
     }, (res) => {
       console.log(res.statusCode);
@@ -635,16 +637,17 @@ function sendGenericMessage(recipientId, account) {
           elements: [{
             title: account.name,
             subtitle: account.description,
+            // TODO add url and image url when available from the API
             item_url: "https://halifax.co.uk",
             image_url: "http://themarketcentre.co.uk/cache/thumbs/h/a/l/3f0f537b_380x380.jpg",
             buttons: [{
               type: "web_url",
               url: "https://halifax.co.uk",
-              title: "Open " + account.brand + "'s website"
+              title: `Open ${account.brand}'s website`
             }, {
               type: "postback",
-              title: "Call " + account.brand,
-              payload: "Call " + account.brand,
+              title: `Call ${account.brand}`,
+              payload: `Call ${account.brand}`,
             }],
           }]
         }

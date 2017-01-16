@@ -35,7 +35,9 @@ Open `ibmwatson-fb-messenger-chatbot/config/config.json` in a text-editor.
         "conversationUrl": "",
         "conversationUsername": "",
         "conversationPassword": "",
-        "conversationWorkspace": ""
+        "conversationWorkspace": "",
+        "API_Key": "",
+        "API_Secret": ""
     }
 
 Replace these values with those from your Facebook Developer account
