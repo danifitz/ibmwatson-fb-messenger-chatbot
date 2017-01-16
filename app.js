@@ -391,6 +391,11 @@ function sendToWatson(senderID, userMessage) {
         sendTextMessage(senderID, response.output.text[0]);
     }
 
+    // Store the context to enable a conversation to happen
+    // we are storing a context per senderID to enable
+    // multiple conversations to happen with Watson simultaneously
+    contextStack[senderID] = response.context;
+
     // If we detect an action in the response, act on it
     if (response.output.action) {
       console.log(colors.yellow('Detected action: #' + response.output.action));
@@ -432,16 +437,6 @@ function sendToWatson(senderID, userMessage) {
         delete contextStack[senderID];
       }
     }
-
-    // Add the facebook sender ID to the context
-    // so this bot can be 'multi-tenant'
-    // response.context.userID = senderID;
-    // Store the context from the response so we can send it
-    // with the next message
-    // currentContext.push(response.context);
-    // currentContext = response.context;
-
-    contextStack[senderID] = response.context;
 
   }
 }
