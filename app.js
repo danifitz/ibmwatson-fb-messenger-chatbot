@@ -405,15 +405,15 @@ function sendToWatson(senderID, userMessage) {
       let endConversation = false;
       switch (response.output.action) {
         case savingsActions.insurance:
-          params = '?filter[where][mobile_insurance]=true';
+          params = '?filter[where][mobile_insurance]=true&filter[limit]=1';
           isSavingsAction = true;
           break;
         case savingsActions.interest:
-          params = '?filter[where][interest%20rate][gt]=2&filter[limit]=1';
+          params = '?filter[where][interest%20rate][gt]=1&filter[limit]=1';
           isSavingsAction = true;
           break;
         case savingsActions.cashback:
-          params = '?filter[where][cashback]=true';
+          params = '?filter[where][cashback]=true&filter[limit]=1';
           isSavingsAction = true;
           break;
         case 'check_balance':
@@ -456,19 +456,19 @@ function sendTemplateMessage(recipientId, account) {
           elements: [
             {
               title: account.name,
-              image_url: "http://themarketcentre.co.uk/cache/thumbs/h/a/l/3f0f537b_380x380.jpg",
+              image_url: account.img_url,
               subtitle: account.description,
               default_action: {
                 type: "web_url",
-                url: "https://wwww.halifax.co.uk",
+                url: account.product_website,
                 messenger_extensions: false,
                 webview_height_ratio: "tall",
-                fallback_url: "https://wwww.halifax.co.uk"
+                fallback_url: account.product_website
               },
               buttons: [
                 {
                   type: "web_url",
-                  url: "http://wwww.halifax.co.uk",
+                  url: account.product_website,
                   title: "Go to " + account.brand + "'s website"
                 },
                 {
@@ -632,12 +632,11 @@ function sendGenericMessage(recipientId, account) {
           elements: [{
             title: account.name,
             subtitle: account.description,
-            // TODO add url and image url when available from the API
-            item_url: "https://halifax.co.uk",
-            image_url: "http://themarketcentre.co.uk/cache/thumbs/h/a/l/3f0f537b_380x380.jpg",
+            item_url: account.product_website,
+            image_url: account.img_url,
             buttons: [{
               type: "web_url",
-              url: "https://halifax.co.uk",
+              url: account.product_website,
               title: `Open ${account.brand}'s website`
             }, {
               type: "postback",
