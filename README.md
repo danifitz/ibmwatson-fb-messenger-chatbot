@@ -1,6 +1,21 @@
 # IBM Watson Facebook Messenger Chatbot
 An Open Banking chatbot powered by IBM Bluemix, IBM Watson and Facebook messenger
 
+## What's this about?
+
+>Open Banking is an emerging term in financial services / financial technology that refers to:
+
+>1) The use of Open APIs that enable third party developers to build applications and services around the financial institution.
+
+>2) Greater financial transparency options for account holders ranging from Open Data to private data.
+
+>> source: https://en.wikipedia.org/wiki/Open_banking
+
+IBM has a big part to play in this transformation of the banking industry as we
+offer solutions to enable their journey to Open Banking. This demo highlights how
+new players such as the fictional Chatty Bank might seek to provide an engaging
+digital experience to customers wishing to manage their money in new ways.
+
 ## Getting Started
 
 1. Go to developer.facebook.com and sign up
