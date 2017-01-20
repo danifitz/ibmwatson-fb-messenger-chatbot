@@ -79,7 +79,7 @@ const conversation = new conversationv1({
 // let currentContext = [];
 let currentContext = {};
 
-const savingsActions = {
+const currentAccountActions = {
   insurance: 'mobile_insurance',
   interest: 'interest',
   cashback: 'cashback'
@@ -404,16 +404,16 @@ function sendToWatson(senderID, userMessage) {
       let isSavingsAction = false;
       let endConversation = false;
       switch (response.output.action) {
-        case savingsActions.insurance:
-          params = '?filter[where][mobile_insurance]=true&filter[limit]=1';
+        case currentAccountActions.insurance:
+          params = "?filter[where][type][regexp]=/Current%20Account/i&[filter][where][mobile_insurance]=true&filter[limit]=1";
           isSavingsAction = true;
           break;
-        case savingsActions.interest:
-          params = '?filter[where][interest%20rate][gt]=1&filter[limit]=1';
+        case currentAccountActions.interest:
+          params = '?filter[where][type][regexp]=/Current%20Account/i&filter[where][interest%20rate][gt]=1&filter[limit]=1';
           isSavingsAction = true;
           break;
-        case savingsActions.cashback:
-          params = '?filter[where][cashback]=true&filter[limit]=1';
+        case currentAccountActions.cashback:
+          params = '?filter[where][type][regexp]=/Current%20Account/i&filter[where][cashback]=true&filter[limit]=1';
           isSavingsAction = true;
           break;
         case 'check_balance':
@@ -437,7 +437,6 @@ function sendToWatson(senderID, userMessage) {
         delete contextStack[senderID];
       }
     }
-
   }
 }
 
