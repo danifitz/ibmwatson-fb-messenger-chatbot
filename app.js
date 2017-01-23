@@ -9,11 +9,8 @@
 
 /* jshint node: true, devel: true */
 'use strict';
-require('strict-mode')(function () {
-  // every *require* call inside this function will have strict mode enabled
-  // this is due to Bluemix monitoring & analytics importing a module which
-  // breaks this code.
-  const
+
+const
     bodyParser = require('body-parser'),
     config = require('config'),
     crypto = require('crypto'),
@@ -691,4 +688,3 @@ require('strict-mode')(function () {
   });
 
   module.exports = app;
-})
