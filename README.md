@@ -31,7 +31,7 @@ app for iOS/Android. Start a new conversation with Chatty Bank.
 
 ## Architecture
 
-[architecture diagram](https://github.com/danifitz/ibmwatson-fb-messenger-chatbot/blob/master/architecture.png)
+![architecture diagram](https://github.com/danifitz/ibmwatson-fb-messenger-chatbot/blob/master/architecture.png)
 
 <!-- ### Configure the Node.js bot app
 
