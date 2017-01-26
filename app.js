@@ -81,10 +81,11 @@ const conversation = new conversationv1({
   version_date: '2016-07-11'
 });
 
+let redisClient;
 // Will only have a value if it's running on CF with a Redis service bound to it
 if(REDIS_CREDENTIALS) {
   // Create a new Redis client using the URI from VCAP_SERVICES
-  const redisClient = redis.createClient(REDIS_CREDENTIALS[0].credentials.uri);
+  redisClient = redis.createClient(REDIS_CREDENTIALS[0].credentials.uri);
 }
 
 // Used to store the conversation context
