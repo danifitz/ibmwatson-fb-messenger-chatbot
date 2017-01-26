@@ -454,72 +454,68 @@ function sendBankBalanceTemplateMessage(recipientId) {
           top_element_style: 'large',
           elements: [
             {
-              title: "All your accounts: HSBC, NatWest, Lloyds",
+              title: "Total balance: £5210.44",
               image_url: SERVER_URL + '/assets/watson.png',
-              subtitle: "Your total balance is £5210.44",
+              subtitle: "HSBC, NatWest & Lloyds",
               default_action: {
                 type: "web_url",
                 url: "https://facebook.com/chattybank",
-                messenger_extensions: false,
-                webview_height_ratio: "tall",
-                fallback_url: "https://hsbc.com"
-              }
+                webview_height_ratio: "compact"
+              },
+              buttons: []
             },
             {
-              title: "HSBC Current Account",
-              image_url: SERVER_URL + '/assets/banks/hsbc.jpg',
-              subtitle: "Your HSBC balance is £1902.89",
+              title: "£1902.89",
+              // image_url: SERVER_URL + '/assets/banks/hsbc.jpg',
+              subtitle: "HSBC Current Account",
               default_action: {
                 type: "web_url",
                 url: "https://hsbc.com",
-                messenger_extensions: false,
-                webview_height_ratio: "tall",
-                fallback_url: "https://hsbc.com"
+                webview_height_ratio: "compact"
               },
               buttons: [
-                {
-                  type: "web_url",
-                  url: "https://hsbc.com",
-                  title: "Go to HSBC's website"
-                }
+                // {
+                //   type: "web_url",
+                //   url: "https://hsbc.com",
+                //   title: "Website",
+                //   webview_height_ratio: 'compact'
+                // }
               ]
             },
             {
-              title: "NatWest Savings Account",
-              image_url: SERVER_URL + '/assets/banks/natwest.png',
-              subtitle: "Your NatWest balance is £1348.89",
+              title: "£1348.89",
+              // image_url: SERVER_URL + '/assets/banks/natwest.png',
+              subtitle: "NatWest Savings Account",
               default_action: {
                 type: "web_url",
                 url: "https://natwest.com",
-                messenger_extensions: false,
-                webview_height_ratio: "tall",
-                fallback_url: "https://natwest.com"
+                webview_height_ratio: "compact"
               },
               buttons: [
-                {
-                  type: "web_url",
-                  url: "https://natwest.com",
-                  title: "Go to NatWest's website"
-                }
+                // {
+                //   type: "web_url",
+                //   url: "https://natwest.com",
+                //   title: "Go to NatWest's website",
+                //   webview_height_ratio: 'compact'
+                // }
               ]
             },
             {
-              title: "Lloyds Joint Current Account",
-              image_url: SERVER_URL + '/assets/banks/lloyds.jpg',
-              subtitle: "Your NatWest balance is £1958.66",
+              title: "£1958.66",
+              // image_url: SERVER_URL + '/assets/banks/lloyds.jpg',
+              subtitle: "Lloyds Joint Current Account",
               default_action: {
                 type: "web_url",
                 url: "https://www.lloydsbank.com/",
-                messenger_extensions: false,
-                webview_height_ratio: "tall",
-                fallback_url: "https://www.lloydsbank.com/"
+                webview_height_ratio: "compact"
               },
               buttons: [
-                {
-                  type: "web_url",
-                  url: "https://www.lloydsbank.com/",
-                  title: "Go to Lloyds' website"
-                }
+                // {
+                //   type: "web_url",
+                //   url: "https://www.lloydsbank.com/",
+                //   title: "Website",
+                //   webview_height_ratio: 'compact'
+                // }
               ]
             }
           ]
