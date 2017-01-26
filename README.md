@@ -29,6 +29,10 @@ app for iOS/Android. Start a new conversation with Chatty Bank.
 
 5. Check your current bank balance or find a better deal on a savings or current account
 
+## Architecture
+
+[architecture diagram](https://github.com/danifitz/ibmwatson-fb-messenger-chatbot/blob/master/architecture.png)
+
 <!-- ### Configure the Node.js bot app
 
 1. Login to Bluemix and create an instance of the Watson Conversation service.
