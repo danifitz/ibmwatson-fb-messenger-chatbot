@@ -20,7 +20,8 @@ const
     conversationv1 = require('watson-developer-cloud/conversation/v1'),
     Promise = require('bluebird'),
     colors = require('colors'),
-    cfenv = require('cfenv');
+    cfenv = require('cfenv'),
+    redis = require('redis');
 
 var app = express();
 var appEnv = cfenv.getAppEnv();
@@ -56,6 +57,9 @@ const SERVER_URL = (process.env.SERVER_URL) ?
   (process.env.SERVER_URL) :
   config.get('serverURL');
 
+// Get the redis credentials - used for caching the conversation context
+const REDIS_CREDENTIALS = appEnv.getService('compose-for-redis');
+
 const CONV_URL = config.get('conversationUrl');
 const CONV_USER = config.get('conversationUsername');
 const CONV_PASSWORD = config.get('conversationPassword');
@@ -77,6 +81,12 @@ const conversation = new conversationv1({
   version_date: '2016-07-11'
 });
 
+// Will only have a value if it's running on CF with a Redis service bound to it
+if(REDIS_CREDENTIALS) {
+  // Create a new Redis client using the URI from VCAP_SERVICES
+  const redisClient = redis.createClient(REDIS_CREDENTIALS[0].credentials.uri);
+}
+
 // Used to store the conversation context
 let currentContext = {};
 
@@ -85,18 +95,6 @@ const currentAccountActions = {
   interest: 'interest',
   cashback: 'cashback'
 };
-
-// Find a context by User ID
-function findContextByUserID(userID) {
-  for(let i = 0; i < currentContext.length; i++) {
-    let context = currentContext[i];
-    if(context.userID === userID) {
-      return context;
-    } else {
-      return undefined;
-    }
-  }
-}
 
 /*
  * Use your own validation token. Check that the token used in the Webhook
@@ -768,7 +766,7 @@ function callSendAPI(messageData) {
 // Webhooks must be available via SSL with a certificate signed by a valid
 // certificate authority.
 app.listen(app.get('port'), function() {
-  console.log('Node app is running on port', app.get('port'));
+  console.log('Chatty Bank app is running on port', app.get('port'));
 });
 
 module.exports = app;
