@@ -19,10 +19,12 @@ const
     request = require('request'),
     conversationv1 = require('watson-developer-cloud/conversation/v1'),
     Promise = require('bluebird'),
-    colors = require('colors');
+    colors = require('colors'),
+    cfenv = require('cfenv');
 
 var app = express();
-app.set('port', process.env.PORT || 5000);
+var appEnv = cfenv.getAppEnv();
+app.set('port', appEnv.port || 5000);
 app.set('view engine', 'ejs');
 app.use(bodyParser.json({ verify: verifyRequestSignature }));
 app.use(express.static('public'));
