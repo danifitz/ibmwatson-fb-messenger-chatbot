@@ -357,10 +357,29 @@ function receivedMessage(event) {
   }
 }
 
-let contextStack = {}
+function getUserDetails(senderID) {
+  let graphUrl = `https://graph.facebook.com/v2.6/${senderID}?access_token=${PAGE_ACCESS_TOKEN}`;
+
+  console.log('url is', graphUrl);
+  console.log('senderID is', senderID);
+  request({
+    har: {
+      url: graphUrl,
+      method: 'GET'
+    }
+  },
+  function (err, data, response) {
+    if(!err) {
+      console.log('USER DETAILS', response);
+    }
+  });
+}
+
+let contextStack = {};
 
 function sendToWatson(senderID, userMessage) {
   // sendTypingOn(senderID);
+  getUserDetails(senderID);
 
   // Start conversation with empty message.
   conversation.message({
@@ -405,18 +424,15 @@ function sendToWatson(senderID, userMessage) {
       let endConversation = false;
       switch (response.output.action) {
         case currentAccountActions.insurance:
-          params = `?filter[where][type][regexp]=/Current%20Account/i&
-                    [filter][where][mobile_insurance]=true&filter[limit]=1`;
+          params = '?filter[where][type][regexp]=/Current%20Account/i&[filter][where][mobile_insurance]=true&filter[limit]=1';
           isSavingsAction = true;
           break;
         case currentAccountActions.interest:
-          params = `?filter[where][type][regexp]=/Current%20Account/i&
-                    filter[where][interest%20rate][gt]=1&filter[limit]=1`;
+          params = '?filter[where][type][regexp]=/Current%20Account/i&filter[where][interest%20rate][gt]=1&filter[limit]=1';
           isSavingsAction = true;
           break;
         case currentAccountActions.cashback:
-          params = `?filter[where][type][regexp]=/Current%20Account/i&
-                    filter[where][cashback]=true&filter[limit]=1`;
+          params = '?filter[where][type][regexp]=/Current%20Account/i&filter[where][cashback]=true&filter[limit]=1';
           isSavingsAction = true;
           break;
         case 'check_balance':
