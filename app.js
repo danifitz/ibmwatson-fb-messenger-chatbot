@@ -405,15 +405,18 @@ function sendToWatson(senderID, userMessage) {
       let endConversation = false;
       switch (response.output.action) {
         case currentAccountActions.insurance:
-          params = "?filter[where][type][regexp]=/Current%20Account/i&[filter][where][mobile_insurance]=true&filter[limit]=1";
+          params = `?filter[where][type][regexp]=/Current%20Account/i&
+                    [filter][where][mobile_insurance]=true&filter[limit]=1`;
           isSavingsAction = true;
           break;
         case currentAccountActions.interest:
-          params = '?filter[where][type][regexp]=/Current%20Account/i&filter[where][interest%20rate][gt]=1&filter[limit]=1';
+          params = `?filter[where][type][regexp]=/Current%20Account/i&
+                    filter[where][interest%20rate][gt]=1&filter[limit]=1`;
           isSavingsAction = true;
           break;
         case currentAccountActions.cashback:
-          params = '?filter[where][type][regexp]=/Current%20Account/i&filter[where][cashback]=true&filter[limit]=1';
+          params = `?filter[where][type][regexp]=/Current%20Account/i&
+                    filter[where][cashback]=true&filter[limit]=1`;
           isSavingsAction = true;
           break;
         case 'check_balance':
