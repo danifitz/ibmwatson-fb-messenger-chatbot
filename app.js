@@ -371,6 +371,8 @@ function getUserDetails(senderID) {
   function (err, data, response) {
     if(!err) {
       console.log('USER DETAILS', response);
+
+      //TODO store user details in Cloudant so we can visualise on a dashboard
     }
   });
 }
@@ -476,7 +478,7 @@ function sendBankBalanceTemplateMessage(recipientId) {
             {
               title: "Total balance: £5210.44",
               image_url: SERVER_URL + '/assets/watson.png',
-              subtitle: "HSBC, NatWest & Lloyds",
+              subtitle: "Santander, NatWest & Lloyds",
               default_action: {
                 type: "web_url",
                 url: "https://facebook.com/chattybank",
@@ -487,10 +489,10 @@ function sendBankBalanceTemplateMessage(recipientId) {
             {
               title: "£1902.89",
               // image_url: SERVER_URL + '/assets/banks/hsbc.jpg',
-              subtitle: "HSBC Current Account",
+              subtitle: "Santander Current Account",
               default_action: {
                 type: "web_url",
-                url: "https://hsbc.com",
+                url: "https://santander.com",
                 webview_height_ratio: "compact"
               },
               buttons: [
