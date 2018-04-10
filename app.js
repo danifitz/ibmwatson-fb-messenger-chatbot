@@ -10,6 +10,9 @@
 /* jshint node: true, devel: true */
 'use strict';
 
+// Setup New Relic APM Monitoring
+require('newrelic');
+
 const
     bodyParser = require('body-parser'),
     config = require('config'),
