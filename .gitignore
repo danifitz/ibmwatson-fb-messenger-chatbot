@@ -1,5 +1,5 @@
 node_modules
-
+newrelic.js
 # OS X specific git ignore stuff
 
 *.DS_Store
